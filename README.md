@@ -71,15 +71,6 @@ python -m plan_sequence.assets.build_contact_graph \
   --dir assets/beam_assembly/original --save-json
 ```
 
-Run model-only FAST inference (the ranked choices are printed):
-
-```bash
-python -m fast_network.inference \
-  --assembly_id original \
-  --asset-dir assets/beam_assembly \
-  --checkpoint_path checkpoints/pretrained_model_gt.pth
-```
-
 Generate a physics-checked sequence:
 
 ```bash

@@ -75,20 +75,6 @@ This writes NetworkX node-link JSON. `nodes` contains each part identifier and
 `links` contains contacting `source`/`target` pairs. Do not hand-author the graph
 unless it uses exactly the same identifiers as the OBJ filenames.
 
-## Run FAST inference
-
-To inspect FAST's model-only choices without running the physics planner:
-
-```bash
-python -m fast_network.inference \
-  --assembly_id widget \
-  --asset-dir assets/custom \
-  --checkpoint_path checkpoints/pretrained_model_gt.pth
-```
-
-This prints each selected removal part, canonical direction, and score. It does
-not write planner output files or perform physics validation.
-
 ## Generate a sequence
 
 Choose an optional base part that must remain in the assembly, then run with one
