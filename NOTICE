@@ -1,0 +1,24 @@
+FAST includes source derived from ASAP and its RedMax simulation runtime.
+
+ASAP
+Copyright (c) 2024 Yunsheng Tian
+MIT License; see LICENSE.
+
+Bundled native dependencies retain their original notices:
+
+- Eigen: MPL-2.0 and component-specific licenses in
+  simulation/externals/eigen/COPYING.*
+- GLEW: BSD/MIT/SGI notices in simulation/externals/glew/LICENSE.txt
+- GLFW: zlib/libpng license in simulation/externals/glfw/COPYING.txt
+- Dear ImGui: MIT license in simulation/externals/imgui/LICENSE
+- libigl: MPL-2.0/GPL notices in simulation/externals/libigl/LICENSE.*
+- pugixml: MIT license in simulation/externals/pugixml/readme.txt
+- pybind11: BSD-3-Clause license in simulation/externals/pybind11/LICENSE
+- SDFGen: MIT license in simulation/externals/sdfgen/README.md
+- stb_image/stb_image_write: public-domain or MIT dual license stated in
+  simulation/externals/stb/README.md and the included headers
+- tinyobjloader: MIT license stated in
+  simulation/externals/tiny_obj_loader/tiny_obj_loader.h
+
+The pretrained checkpoint is distributed separately as a metadata-stripped,
+weights-only GitHub Release asset and is not stored in Git history.

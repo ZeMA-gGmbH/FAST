@@ -1,0 +1,53 @@
+{
+    "directed": false,
+    "multigraph": false,
+    "graph": {},
+    "nodes": [
+        {
+            "color": "green",
+            "id": "0"
+        },
+        {
+            "color": "green",
+            "id": "1"
+        },
+        {
+            "color": "green",
+            "id": "2"
+        },
+        {
+            "color": "green",
+            "id": "3"
+        },
+        {
+            "color": "green",
+            "id": "6"
+        }
+    ],
+    "links": [
+        {
+            "color": "blue",
+            "dist": -0.005448551043933441,
+            "source": "0",
+            "target": "2"
+        },
+        {
+            "color": "blue",
+            "dist": -0.005478890871848559,
+            "source": "1",
+            "target": "3"
+        },
+        {
+            "color": "blue",
+            "dist": -0.004262711717042289,
+            "source": "2",
+            "target": "6"
+        },
+        {
+            "color": "blue",
+            "dist": -0.00548392048326206,
+            "source": "3",
+            "target": "6"
+        }
+    ]
+}
