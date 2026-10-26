@@ -2,7 +2,8 @@ FAST includes source derived from ASAP and its RedMax simulation runtime.
 
 ASAP
 Copyright (c) 2024 Yunsheng Tian
-MIT License; see LICENSE.
+MIT License; see LICENSE. The directories assets/, plan_sequence/, simulation/,
+and utils/ contain ASAP source, partly modified.
 
 Bundled native dependencies retain their original notices:
 
@@ -20,5 +21,13 @@ Bundled native dependencies retain their original notices:
 - tinyobjloader: MIT license stated in
   simulation/externals/tiny_obj_loader/tiny_obj_loader.h
 
-The pretrained checkpoint is distributed separately as a metadata-stripped,
-weights-only GitHub Release asset and is not stored in Git history.
+The PointNet ranker in fast/pointnet_models.py adapts the point-cloud encoder of
+ASAP's released network (plan_sequence/generator/network/), MIT License.
+
+No dataset, mesh, label, or planner trace is stored in this repository. The
+assemblies come from the Fusion 360 Gallery Dataset (Autodesk) as processed by
+ASAP and are obtained from the ASAP distribution under their own terms. The
+simulation labels are published separately; see README.md.
+
+The pretrained checkpoints are distributed separately as metadata-stripped,
+weights-only GitHub Release assets and are not stored in Git history.

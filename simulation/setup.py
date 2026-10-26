@@ -47,7 +47,7 @@ class CMakeBuild(build_ext):
             build_args += ['--', '/m:8']
         else:
             cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
-            build_args += ['--', '-j8']
+            build_args += ['--', '-j' + os.environ.get('FAST_BUILD_JOBS', '8')]  # lower it on machines with little memory
 
         env = os.environ.copy()
         env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(env.get('CXXFLAGS', ''),

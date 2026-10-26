@@ -1,0 +1,78 @@
+{
+  "schema_version": "fast.production-label-manifest.v1",
+  "phase": "fast-labels-v1-production",
+  "source_splits": ["training_assembly", "test_assembly"],
+  "common_parameters": {
+    "max_poses": 3,
+    "pose_probability": 0.9,
+    "removal_timeout_s": 60.0,
+    "stability_timeout_s": 900.0,
+    "save_sdf": true,
+    "seed": 0
+  },
+  "tiers": {
+    "small": {
+      "part_counts": [3, 6],
+      "generator": "exhaustive-reachable",
+      "resources": {"memory": "4G", "disk": "15G"}
+    },
+    "medium": {
+      "part_counts": [7, 20],
+      "generator": "adaptive-mixed",
+      "candidate_time_budget_s": 3600.0,
+      "state_part_attempt_multiplier": 2,
+      "candidate_evaluation_multiplier": 6,
+      "resources": {"memory": "8G", "disk": "30G"}
+    },
+    "large": {
+      "part_counts": [21, 70],
+      "generator": "asap-dfs-heur-out",
+      "state_part_attempt_budget": 400,
+      "candidate_evaluation_budget": 400,
+      "resources": {"memory": "12G", "disk": "50G"}
+    }
+  },
+  "inventory": {
+    "path": "configs/label_production_jobs.tsv",
+    "sha256": "2b7c2eedeafbd099b4667751df72990a6025a147979aa02075f8040db67227a6",
+    "expected": {
+      "total": 2132,
+      "per_split": {
+        "training_assembly": {"total": 1894, "small": 1151, "medium": 641, "large": 102},
+        "test_assembly": {"total": 238, "small": 20, "medium": 129, "large": 89}
+      }
+    }
+  },
+  "paths": {
+    "cache_root": "cache/sdf",
+    "labels_root": "labels/fast-labels-v1",
+    "audit_root": "runs/fast-labels-v1/assemblies",
+    "combined_audit": "runs/fast-labels-v1/audit.json"
+  },
+  "excluded_assemblies": [
+    {"split": "training_assembly", "assembly_id": "00155", "reason": "repeatable simulator SIGSEGV in production and retry"},
+    {"split": "training_assembly", "assembly_id": "02033", "reason": "repeatable simulator SIGSEGV in production and retry"},
+    {"split": "training_assembly", "assembly_id": "02337", "reason": "repeatable simulator SIGSEGV in production and retry"},
+    {"split": "training_assembly", "assembly_id": "04183", "reason": "repeatable simulator SIGSEGV in production and retry"},
+    {"split": "training_assembly", "assembly_id": "04490", "reason": "repeatable simulator SIGSEGV in production and retry"},
+    {"split": "training_assembly", "assembly_id": "05288", "reason": "repeatable simulator SIGSEGV in production and retry"},
+    {"split": "training_assembly", "assembly_id": "05480", "reason": "repeatable simulator SIGSEGV in production and retry"},
+    {"split": "training_assembly", "assembly_id": "05810", "reason": "repeatable simulator SIGSEGV in production and retry"},
+    {"split": "training_assembly", "assembly_id": "05838", "reason": "repeatable simulator SIGSEGV in production and retry"},
+    {"split": "training_assembly", "assembly_id": "05847", "reason": "repeatable simulator SIGSEGV in production and retry"},
+    {"split": "training_assembly", "assembly_id": "07588", "reason": "repeatable simulator SIGSEGV in production and retry"},
+    {"split": "training_assembly", "assembly_id": "08073", "reason": "repeatable simulator SIGSEGV in production and retry"},
+    {"split": "test_assembly", "assembly_id": "04489", "reason": "repeatable simulator SIGSEGV in production and retry"},
+    {"split": "test_assembly", "assembly_id": "07802", "reason": "repeatable simulator SIGSEGV in production and retry"}
+  ],
+  "known_duplicate_groups": [
+    {"input_sha256": "151954c7e0e2a8e3f4efb56b3b7c9f08fee4da43cf0d36e69ccdb1e4138274b9", "members": [["training_assembly", "02779"], ["training_assembly", "02781"]]},
+    {"input_sha256": "7a0782798606477f5f607be00b74533273e0e931cba7ea7deebe8c7739ee1d62", "members": [["training_assembly", "05442"], ["training_assembly", "05443"]]},
+    {"input_sha256": "840996fe157df88a36699d0de44671eef41bd33d4feee93eea7c7880a4f79e86", "members": [["training_assembly", "03035"], ["training_assembly", "03042"]]},
+    {"input_sha256": "8615452b94821a1807ac054e99a6b3bc766c22268847f775a201f4006c1563fc", "members": [["training_assembly", "03876"], ["training_assembly", "03877"]]},
+    {"input_sha256": "a02b48879274c57e6aded8dc13171f18ae982c9e8d7d43c551c94e0f329a2c59", "members": [["training_assembly", "07385"], ["test_assembly", "07386"]]},
+    {"input_sha256": "a87b34e271bc8e591d8b6c5a4e876c4fd6c6f725505392cc2ce87e61cd30b8c0", "members": [["training_assembly", "04108"], ["training_assembly", "04109"]]},
+    {"input_sha256": "ba461e18bb9db7109b64987b904be9fa2540907286f9568a6becc2c44b0f7e62", "members": [["training_assembly", "07683"], ["training_assembly", "07684"]]},
+    {"input_sha256": "d174071204ac8d888bfc768e2068abc79631cabab0b534d8af89e7a812d9b894", "members": [["training_assembly", "06764"], ["training_assembly", "06765"]]}
+  ]
+}

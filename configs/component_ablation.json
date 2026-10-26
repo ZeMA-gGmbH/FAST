@@ -1,0 +1,509 @@
+{
+  "schema_version": "fast.component-ablation-spec.v1",
+  "status": "frozen",
+  "run_id": "component-ablation-v1",
+  "frozen_before_outcome_access": true,
+  "claim_boundary": "post-hoc exploratory validation-only component evidence; no test data, no live simulation, no change to frozen planning-study/3E evidence, no universal or causal feature-importance claim",
+  "frozen_inputs": {
+    "ranker_model_spec": {
+      "path": "configs/ranker_models.json",
+      "sha256": "8635d479af011786af5688e9bf4bdcedb53dc5c3460cba37bb4417adb63b2f7f"
+    },
+    "feature_config": {
+      "path": "configs/features.json",
+      "sha256": "6b34e9d7485ffb529786c28ddb4e8caeb17643fb439a085d27a4271083d787f6"
+    },
+    "ranker_environment_lock": {
+      "path": "environment/cu121/uv.lock",
+      "sha256": "20800514b9e49b7d32bfc09e4a1589a96ab0a0f029c666f45d9a86d8c96dfdaa"
+    },
+    "closure": "runs/component-ablation-v1/transfer-manifest.json and transfer-verification.json"
+  },
+  "population": {
+    "splits": [
+      "train",
+      "validation"
+    ],
+    "train_assembly_count": 1703,
+    "validation_assembly_count": 191,
+    "validation_tier_assembly_counts": {
+      "small": 115,
+      "medium": 65,
+      "large": 11
+    },
+    "validation_context_count": 2947,
+    "ranking_eligible_context_count": 1988,
+    "ranking_eligibility": "fully observed context (every candidate R_valid and T_valid) with at least one Y-positive action, exactly as ranker_validate._ranking_metrics",
+    "test_rows_loaded": 0
+  },
+  "runtimes": {
+    "compatibility": {
+      "purpose": "frozen-checkpoint inference for the reference gate and experiments A, B, C, and E",
+      "lock": "environment/cu121/uv.lock",
+      "python": "3.8.20",
+      "device": "cpu",
+      "cuda_visible_devices": ""
+    },
+    "training": {
+      "purpose": "same-runtime D0/D1/D2 retraining and their validation evaluation",
+      "lock": "environment/cu128/uv.lock",
+      "python": "3.10.20",
+      "torch": "2.7.1+cu128",
+      "torch_geometric": "2.7.0",
+      "device": "cuda:0 (NVIDIA GeForce RTX 5090, capability 12.0)",
+      "cublas_workspace_config": ":4096:8",
+      "deterministic_algorithms": true,
+      "cudnn_benchmark": false,
+      "tf32_matmul": false,
+      "tf32_cudnn": false
+    }
+  },
+  "reference_gate": {
+    "model": "graph_transformer",
+    "checkpoints": {
+      "0": "5f44170fb749f4f71963599bf6a28b613f91d9b79c7df56dfbec394e27a0c1dc",
+      "1": "8ccfee223d9bd854034de14693ca43bde7c67bba0569b61ed3095f460d310e0e",
+      "2": "38cd41a9a98854fc3977aba64104e0189a0d4880bb49a38374f4bb13a396d422"
+    },
+    "three_seed_means_rounded_5": {
+      "offline_context_success_at_1": 0.92203,
+      "first_feasible_mrr": 0.94995,
+      "Y_average_precision": 0.84428
+    },
+    "rule": "abort A, B, and E unless each three-seed mean rounds to the listed value at five decimals; record per-seed values and whether they are identical to the frozen per-seed reports"
+  },
+  "ranking_contract": {
+    "flattening": "candidate-major over the stored candidates, then direction order +Z,-Z,+X,-X,+Y,-Y",
+    "sort": "decreasing score; exact ties by part-ID string (the planner's action_planner.scored_actions order), then direction order +Z,-Z,+X,-X,+Y,-Y; part rankings (B) break part-score ties by part-ID string",
+    "metrics": [
+      "offline_context_success_at_1",
+      "offline_context_success_at_3",
+      "first_feasible_mrr",
+      "mean_first_feasible_rank"
+    ],
+    "mean_first_feasible_rank": "1-based position of the first Y-positive action, averaged over ranking-eligible contexts",
+    "seed_aggregation": "per-seed context mean, then mean over seeds 0/1/2",
+    "rows": [
+      "all",
+      "small",
+      "medium",
+      "large"
+    ],
+    "row_fields": [
+      "assembly_count",
+      "stored_context_count",
+      "ranking_eligible_context_count"
+    ],
+    "large_tier_note": "11 assemblies; descriptive only",
+    "reference_gate_code": "unchanged frozen ranker_validate._ranking_tables, which breaks exact ties by stored candidate order"
+  },
+  "experiments": {
+    "A": {
+      "name": "score ablation without retraining",
+      "variants": {
+        "A0": "P_R(p,d) * P_T(p)",
+        "A1": "P_R(p,d)",
+        "A2": "P_T(p), identical for all six directions of a part"
+      },
+      "central_contrast": "A1 minus A0",
+      "A2_interpretation": "descriptive stability-only control, not a practical planner score"
+    },
+    "B": {
+      "name": "action-granularity ablation without retraining",
+      "part_score": "max over directions of P_Y(p,d) = P_R(p,d) * P_T(p); parts ordered by decreasing part score, ties by part ID",
+      "variants": {
+        "B1": "FAST part order, then fixed direction order +Z,-Z,+X,-X,+Y,-Y within each part",
+        "B2": "FAST part order, then the frozen train-only direction prior within each part (decreasing rate, ties by fixed direction order)"
+      },
+      "direction_prior_sha256": "853b7e2206e48c4a52d04674c09027956b6af8a0311e4163dd4c80b86b9afb39",
+      "interpretation": "grouping FAST actions by part under fixed or prior within-part direction policies; not a pure causal granularity effect and not a reimplementation of Cebulla et al."
+    },
+    "C": {
+      "name": "complete-label replay on small validation assemblies",
+      "population": "the 115 validation assemblies with 3-6 parts listed in the closure manifest",
+      "search": "fast.action_planner.run_action_dfs unchanged: depth-first search, stored pose order, stability reuse within a state/pose/part, skip of remaining directions after a stored T=false, mandatory validation of every attempted action",
+      "pose_order": "stored poses.json order (pose-000, pose-001, ...) of each reachable state",
+      "budgets": "k*(N-1) action validations for k in 1, 2, 4, 8; success at k iff solution_action_validation <= k*(N-1)",
+      "null_label_rule": "a null stored R or T counts as one non-accepted validation; it is never converted to false or skipped",
+      "fast_scoring": "single-context forward of the frozen checkpoint on the materialized graph record with the frozen normalization, matching planner_integration.FactorizedRanker",
+      "methods": {
+        "fast_A0": {
+          "seeds": [
+            0,
+            1,
+            2
+          ],
+          "ranker": "action_planner.scored_actions over P_R*P_T"
+        },
+        "fast_A1": {
+          "seeds": [
+            0,
+            1,
+            2
+          ],
+          "ranker": "action_planner.scored_actions over P_R"
+        },
+        "fast_A2": {
+          "seeds": [
+            0,
+            1,
+            2
+          ],
+          "ranker": "action_planner.scored_actions over P_T"
+        },
+        "fast_B1": {
+          "seeds": [
+            0,
+            1,
+            2
+          ],
+          "ranker": "action_planner.ordered_actions over FAST part order"
+        },
+        "fast_B2": {
+          "seeds": [
+            0,
+            1,
+            2
+          ],
+          "ranker": "action_planner.direction_prior_actions over FAST part order"
+        },
+        "asap_random": {
+          "seeds": [
+            0,
+            1,
+            2
+          ],
+          "ranker": "action_planner.random_actions(parts, seed, context_id)"
+        },
+        "asap_heur_out": {
+          "seeds": [
+            0,
+            1,
+            2
+          ],
+          "ranker": "plan_sequence.generate_budgeted_sim_labels._heur_out_ranker on raw OBJ geometry, fixed directions"
+        },
+        "heur_out_direction_prior": {
+          "seeds": [
+            0,
+            1,
+            2
+          ],
+          "ranker": "outside-in part order with the frozen direction prior"
+        },
+        "cebulla_gcn": {
+          "seeds": [
+            0,
+            1,
+            2
+          ],
+          "ranker": "frozen Cebulla-style GCN part logits, ties by part ID, fixed directions"
+        }
+      },
+      "excluded_methods": {
+        "asap_released_gatv2": "excluded; requires point clouds"
+      },
+      "reporting": "success rate per method and budget averaged over seeds; paired differences against fast_A0 with the frozen plan restricted to the small-tier block after proving exactly 115 small draws per replicate",
+      "real_equivalence_gate": {
+        "fixture_assembly": "00014",
+        "traces": {
+          "fast_seed0_dedicated_runtime": "6c7e4a99b90a8bc72dca5c6e52c84a996110e7fdd2674097b067abd867de003b",
+          "fast_seed0_cpu_smoke": "164a1f25b1d529ddd9e577d6ecd46c789c78aa935e14058dd3c77baad58a11e7",
+          "asap_random_seed0": "dc977f1642018c06b04770f684bc0c2ae448c11da71ece97a9bc101073156fb3",
+          "asap_heur_out_seed0": "b61b91ff7db25fcc6ed7759d65d8d07aa468639f1a21601712d775f59f8a3e4b",
+          "cebulla_gcn_seed0": "a52197b5cac2d695b45168263c004bd74b8cf1b3982d8a2858b27ea6a902e023",
+          "heur_out_direction_prior_seed0": "1490b1e85c13b2472b51ff4654e6824e29ebab134b488fa84270ad6ab8ac58b9"
+        },
+        "exact_equality": [
+          "ordered attempted actions (state, pose, part, direction)",
+          "accepted/rejected transition decisions",
+          "state and pose progression",
+          "R and T labels of each validation",
+          "T cache-hit flags",
+          "action-validation count",
+          "censored-action count",
+          "accepted-transition list",
+          "solution action validation",
+          "stop reason",
+          "budget checkpoints",
+          "redmax_rollouts and stability_restarts, compared with stored oracle_rollout_count"
+        ],
+        "excluded_from_equality": [
+          "wall_seconds",
+          "removability_seconds",
+          "stability_seconds",
+          "model_ranking_seconds",
+          "overhead_seconds",
+          "R/T runtime_s",
+          "R/T forward_steps",
+          "R/T status and reason strings",
+          "ordered_action_list_sha256 and score floats (reported, not gated)"
+        ],
+        "disclosure": "real replay-to-live equivalence on one five-part training assembly; multiple FAST traces are runtime repetitions"
+      },
+      "synthetic_fixtures": [
+        "rejected directions before an accepted action",
+        "stability cache hit for multiple directions of one candidate in one state/pose",
+        "failed continuation followed by backtracking and an alternate accepted branch",
+        "null R and null T counted as non-accepted validations",
+        "budget exhaustion exactly at a transition boundary and inside a failed branch"
+      ],
+      "wording": "complete-label replay on small validation assemblies; not live planning, simulator evidence, or medium/large evidence"
+    },
+    "D": {
+      "name": "same-runtime feature ablation with retraining",
+      "action_feature_groups": {
+        "direction": [
+          "direction__x",
+          "direction__y",
+          "direction__z",
+          "direction__gravity_alignment",
+          "direction__support_normal_alignment"
+        ],
+        "directional_clearance": [
+          "directional_clearance__outward_projection",
+          "directional_clearance__candidate_extent",
+          "directional_clearance__boundary_gap",
+          "directional_clearance__exit_distance",
+          "directional_clearance__projected_area_fraction",
+          "directional_clearance__blocker_count_fraction",
+          "directional_clearance__blocker_volume_fraction",
+          "directional_clearance__blocker_overlap_fraction",
+          "directional_clearance__minimum_blocker_gap",
+          "directional_clearance__contact_ahead_fraction",
+          "directional_clearance__has_no_aabb_blocker"
+        ]
+      },
+      "variants": {
+        "D0": {
+          "retained_groups": [
+            "direction",
+            "directional_clearance"
+          ],
+          "input_width": 16,
+          "parameter_count": 90142
+        },
+        "D1": {
+          "retained_groups": [
+            "direction"
+          ],
+          "input_width": 5,
+          "parameter_count": 89086
+        },
+        "D2": {
+          "retained_groups": [
+            "directional_clearance"
+          ],
+          "input_width": 11,
+          "parameter_count": 89662
+        }
+      },
+      "mask_rule": "indices derived by name from cad_features.ACTION_FEATURES; fail if names or order differ; slice the frozen training-only action normalization with the same indices; node features, graph, targets, masks, and losses unchanged",
+      "matrix": [
+        {
+          "process": 0,
+          "variant": "D0",
+          "seed": 0,
+          "run_name": "D0-seed-0",
+          "round": "seed-0"
+        },
+        {
+          "process": 1,
+          "variant": "D1",
+          "seed": 0,
+          "run_name": "D1-seed-0",
+          "round": "seed-0"
+        },
+        {
+          "process": 2,
+          "variant": "D2",
+          "seed": 0,
+          "run_name": "D2-seed-0",
+          "round": "seed-0"
+        },
+        {
+          "process": 3,
+          "variant": "D0",
+          "seed": 1,
+          "run_name": "D0-seed-1",
+          "round": "seed-1"
+        },
+        {
+          "process": 4,
+          "variant": "D1",
+          "seed": 1,
+          "run_name": "D1-seed-1",
+          "round": "seed-1"
+        },
+        {
+          "process": 5,
+          "variant": "D2",
+          "seed": 1,
+          "run_name": "D2-seed-1",
+          "round": "seed-1"
+        },
+        {
+          "process": 6,
+          "variant": "D0",
+          "seed": 2,
+          "run_name": "D0-seed-2",
+          "round": "seed-2"
+        },
+        {
+          "process": 7,
+          "variant": "D1",
+          "seed": 2,
+          "run_name": "D1-seed-2",
+          "round": "seed-2"
+        },
+        {
+          "process": 8,
+          "variant": "D2",
+          "seed": 2,
+          "run_name": "D2-seed-2",
+          "round": "seed-2"
+        }
+      ],
+      "protocol": {
+        "architecture": "graph_transformer factorized R/T heads with the action-head input width set by the mask; module construction order unchanged",
+        "epochs": 100,
+        "optimizer": "AdamW lr=0.001 weight_decay=0.0001",
+        "gradient_clip_norm": 1.0,
+        "batch": "8 whole assemblies",
+        "data_order": "numpy.RandomState(seed*1000003+epoch) over the 1,703 training inventory rows; contexts canonical",
+        "loss": "ranker_models.model_loss with frozen component assembly counts",
+        "selection": "maximize (validation Success@1, first-feasible MRR, Y average precision, -epoch) over epochs, as ranker_train.train",
+        "validation_evaluation": "selected checkpoint re-evaluated on cuda:0 in the training runtime with ranker_train.predict"
+      },
+      "comparisons": [
+        "D1 minus D0, same seed",
+        "D2 minus D0, same seed"
+      ],
+      "metrics": [
+        "offline_context_success_at_1",
+        "offline_context_success_at_3",
+        "first_feasible_mrr",
+        "mean_first_feasible_rank",
+        "R_average_precision",
+        "Y_average_precision"
+      ],
+      "frozen_checkpoints_role": "context and compatibility reference only, not the causal control",
+      "execution_order": "A/B/C/E pretraining gate; D0-seed-0 smoke; D0-seed-0; D1-seed-0 and D2-seed-0; seed-0 status report and pause; seeds 1 and 2 as matched rounds only after a recorded continuation",
+      "concurrency_rule": "at most three concurrent jobs, only if projected aggregate peak VRAM < 0.80 * 32 GB, aggregate host RAM < 0.75 * WSL-visible RAM, and >= 4 logical processors per job while retaining 2 for the system; compare measured epoch throughput with one process",
+      "stop_rule": "a stop after seed 0 may depend only on time, resources, or machine availability; never on effect sign or magnitude"
+    },
+    "E": {
+      "name": "prediction-quality table",
+      "targets": {
+        "R": "per action, P_R",
+        "T": "per candidate, P_T",
+        "Y": "per action, P_R * P_T"
+      },
+      "threshold": "predicted positive iff probability >= 0.5 on uncalibrated probabilities; no tuning",
+      "rows": [
+        "all",
+        "small",
+        "medium",
+        "large"
+      ],
+      "columns": [
+        "TP_percent",
+        "TN_percent",
+        "FP_percent",
+        "FN_percent",
+        "unresolved_percent",
+        "accuracy_percent",
+        "precision_percent",
+        "recall_percent"
+      ],
+      "denominators": "TP/TN/FP/FN/unresolved as shares of all labels of the target (resolved plus null); accuracy, precision, and recall over resolved labels; validity masks R_valid, T_valid, Y_valid",
+      "null_name": "unresolved/censored, not automatically time-outs",
+      "threshold_free_context": [
+        "average_precision",
+        "auroc"
+      ],
+      "seed_aggregation": "per seed and mean over seeds 0/1/2",
+      "timing_row": "omitted; the closure transfers no medium/large label summaries"
+    }
+  },
+  "statistics": {
+    "unit": "assembly, paired across variants",
+    "plan": {
+      "path": "runs/ranker-training-v2/bootstrap/resample-plan.json",
+      "sha256": "a3f37a724ac16af0dc10080d501f4d73318f2dbab322f77c14afbeaa70a670b8",
+      "replicates": 10000,
+      "seed": 20260916
+    },
+    "estimator": "per replicate and seed: ratio of summed assembly numerators to summed assembly denominators; mean over available seeds; difference of variant minus control",
+    "tier_rows": "the same replicate rows restricted to that tier's stratum block",
+    "intervals": "exploratory 95% percentile intervals; no p-values or confirmatory significance",
+    "single_seed_fallback": "report seed 0 only; show the historical frozen three-seed spread only as context"
+  },
+  "telemetry": {
+    "service": "Weights & Biases",
+    "project": "fast-component-ablation-2026",
+    "group": "component-ablation-v1",
+    "visibility": "private or restricted",
+    "authoritative": false,
+    "isolation": "separate mirror process tails the local authoritative epoch log; the training process never imports wandb",
+    "logged": [
+      "variant",
+      "seed",
+      "implementation commit",
+      "environment lock hash",
+      "dataset/graph-audit/normalization/spec hashes",
+      "action feature names and input width",
+      "parameter count",
+      "epoch",
+      "loss components",
+      "validation Success@1",
+      "first-feasible MRR",
+      "R AP",
+      "Y AP",
+      "epoch wall time",
+      "peak host RAM",
+      "peak CUDA allocation",
+      "selected epoch",
+      "selected checkpoint SHA-256"
+    ],
+    "prohibited_uploads": [
+      "code",
+      "artifacts",
+      "datasets",
+      "labels",
+      "per-assembly tables",
+      "checkpoints",
+      "test-bearing material",
+      "credentials"
+    ],
+    "fallback": "offline mode on any W&B failure; training never waits on or aborts for telemetry"
+  },
+  "outputs": [
+    "transfer-manifest.json",
+    "transfer-verification.json",
+    "environment.json",
+    "registry.json",
+    "training-matrix.json",
+    "attempts.jsonl",
+    "wandb-mapping.json",
+    "reference-reproduction.json",
+    "score-ablation.json",
+    "granularity-ablation.json",
+    "prediction-quality.json",
+    "small-label-replay.json",
+    "replay-equivalence.json",
+    "pretraining-gate.json",
+    "feature-ablation.json",
+    "bootstrap/",
+    "summary.json",
+    "audit.json"
+  ],
+  "amendments": [
+    {
+      "date": "2026-10-09",
+      "outcome_access_before_amendment": false,
+      "change": "ranking_contract.flattening and ranking_contract.sort",
+      "reason": "a fail-closed guard in the first offline run (no output written, no metric computed or viewed) showed that stored candidate order is ascending part ID only for small-tier contexts; medium/large contexts store label-collection order. The protocol requires ties by part identifier, then frozen direction order, as in the planner, so ties are now ordered explicitly instead of by storage order."
+    }
+  ]
+}

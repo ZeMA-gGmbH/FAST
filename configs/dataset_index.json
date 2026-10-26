@@ -1,0 +1,35 @@
+{
+  "schema_version": "fast.dataset-index-manifest.v1",
+  "phase": "fast-labels-v1",
+  "production_manifest": "configs/label_production.json",
+  "combined_audit": "runs/fast-labels-v1/audit.json",
+  "output_root": "datasets/fast-labels-v1",
+  "validation": {
+    "fraction": 0.1,
+    "seed": 0,
+    "group_by": "input_sha256",
+    "part_count_bins": [
+      [3, 4],
+      [5, 6],
+      [7, 10],
+      [11, 15],
+      [16, 20],
+      [21, 30],
+      [31, 40],
+      [41, 70]
+    ]
+  },
+  "primary_test_exclusions": [
+    {
+      "split": "test_assembly",
+      "assembly_id": "07386",
+      "reason": "exact input duplicate of training_assembly/07385"
+    }
+  ],
+  "expected_assemblies": {
+    "train": {"total": 1703, "small": 1036, "medium": 576, "large": 91},
+    "validation": {"total": 191, "small": 115, "medium": 65, "large": 11},
+    "test": {"total": 237, "small": 20, "medium": 128, "large": 89},
+    "excluded": {"total": 1, "small": 0, "medium": 1, "large": 0}
+  }
+}

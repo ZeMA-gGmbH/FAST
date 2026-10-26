@@ -1,0 +1,43 @@
+[project]
+name = "fast-cu128"
+version = "0.1.0"
+description = "Immutable Blackwell-compatible (sm_120) training environment for the component-ablation retraining"
+requires-python = "==3.10.*"
+# Every shared pin equals environment/cu121; only Python, torch, PyG, and the W&B mirror differ.
+dependencies = [
+    "cycler==0.11.0",
+    "fonttools==4.28.4",
+    "kiwisolver==1.3.2",
+    "matplotlib==3.5.1",
+    "networkx==2.6.3",
+    "numpy==1.21.4",
+    "packaging==21.3",
+    "pillow==8.4.0",
+    "pyparsing==3.0.6",
+    "python-dateutil==2.8.2",
+    "scikit-learn==1.3.2",
+    "scipy==1.7.3",
+    "setuptools==58.0.4",
+    "six==1.16.0",
+    "torch==2.7.1",
+    "torch-geometric==2.7.0",
+    "tqdm==4.62.3",
+    "trimesh==3.10.8",
+    "wheel==0.37.0",
+    "wandb==0.30.0",
+]
+
+[tool.uv]
+package = false
+exclude-newer = "2026-09-25T00:00:00Z"
+required-environments = [
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",
+]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true

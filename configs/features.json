@@ -1,0 +1,18 @@
+{
+  "schema_version": "fast.feature-manifest.v1",
+  "phase": "scalar-features-v3",
+  "protocol": "configs/evaluation_protocol.json",
+  "dataset_root": "datasets/fast-labels-v1",
+  "output_root": "features/scalar-features-v3",
+  "screen_jobs": "configs/feature_screen_jobs.tsv",
+  "support_tolerance_fraction": 0.001,
+  "feature_groups": [
+    "geometry",
+    "state",
+    "pose_support",
+    "topology",
+    "child_stability",
+    "direction",
+    "directional_clearance"
+  ]
+}

@@ -1,0 +1,154 @@
+{
+  "schema_version": "fast.model-spec.v1",
+  "phase": "factorized-ranker-v1",
+  "status": "frozen",
+  "inputs": {
+    "dataset_protocol": {
+      "path": "configs/evaluation_protocol.json",
+      "sha256": "cffe71197b7c41ce7d6de813ee2805cbfeec1b209b55ebb7cd6221c402e067ce"
+    },
+    "dataset_manifest_sha256": "b57465c0dd2568081f6c511f860435e23242c9b64c76df32eafb7bf6df2ce131",
+    "feature_config": {
+      "path": "configs/features.json",
+      "sha256": "6b34e9d7485ffb529786c28ddb4e8caeb17643fb439a085d27a4271083d787f6"
+    },
+    "feature_build_sha256": "d0c86ad0144c77e49ae221b041e11a56a080719fec2be43b497fc6a7a007827a"
+  },
+  "environment": {
+    "project": "environment/cu121/pyproject.toml",
+    "lock": "environment/cu121/uv.lock",
+    "lock_sha256": "20800514b9e49b7d32bfc09e4a1589a96ab0a0f029c666f45d9a86d8c96dfdaa",
+    "container": "local",
+    "python": "3.8",
+    "torch": "2.4.1",
+    "torch_geometric": "2.6.1",
+    "cuda_runtime": "12.1.105",
+    "cudnn": "9.1.0.70"
+  },
+  "artifacts": {
+    "cad_features": "features/scalar-features-v3",
+    "ranker_graphs": "features/graph-records-v2",
+    "ranker_training": "runs/ranker-training-v2"
+  },
+  "materialization": {
+    "pilot_training_assemblies": [
+      "00014",
+      "00011",
+      "00101"
+    ],
+    "development": {
+      "assembly_count": 1894,
+      "candidate_count": 108579,
+      "action_count": 651474,
+      "train_assembly_count": 1703,
+      "validation_assembly_count": 191
+    }
+  },
+  "record": {
+    "schema_version": "fast.graph-record.v1",
+    "candidate_feature_count": 41,
+    "action_feature_count": 16,
+    "directions": [
+      "+Z",
+      "-Z",
+      "+X",
+      "-X",
+      "+Y",
+      "-Y"
+    ],
+    "base_part": null,
+    "max_node_count": 70,
+    "development_splits": [
+      "train",
+      "validation"
+    ]
+  },
+  "batching": {
+    "unit": "whole_assembly",
+    "assemblies_per_batch": 8,
+    "shuffle": "seeded_once_per_epoch",
+    "drop_last": false
+  },
+  "objective": {
+    "ranking": "positive_set_listwise_on_log_factorized_probability",
+    "ranking_weight": 1.0,
+    "auxiliary_weight_each": 0.3333333333333333,
+    "y_auxiliary_mask": "R_valid_and_T_valid",
+    "assembly_weighting": "equal_with_A_over_K_component_scaling",
+    "class_weights": null,
+    "row_resampling": false
+  },
+  "architectures": {
+    "parameter_target": 91000,
+    "parameter_tolerance_fraction": 0.2,
+    "common": {
+      "activation": "relu",
+      "normalization": "layer_norm",
+      "dropout": 0.1
+    },
+    "mlp": {
+      "width": 128,
+      "layers": 4
+    },
+    "gnn": {
+      "width": 128,
+      "layers": 4,
+      "convolution": "gcn"
+    },
+    "gatv2": {
+      "width": 96,
+      "layers": 4,
+      "heads": 4,
+      "channels_per_head": 24
+    },
+    "graph_transformer": {
+      "width": 96,
+      "layers": 1,
+      "heads": 4,
+      "ffn_width": 192,
+      "attention": "global",
+      "structural_bias": "exact_shortest_contact_path",
+      "distance_buckets": 71
+    }
+  },
+  "training": {
+    "trial_count_per_architecture": 1,
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "optimizer": "adamw",
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "gradient_clip_norm": 1.0,
+    "epochs": 100,
+    "early_stopping": false,
+    "mixed_precision": false,
+    "deterministic_algorithms": true
+  },
+  "calibration": {
+    "method": "scalar_temperature",
+    "targets": [
+      "R",
+      "T",
+      "Y"
+    ],
+    "validation_folds": 5,
+    "fold_assignment": "tier_stratified_sha256_round_robin",
+    "tier_specific": false
+  },
+  "uncertainty": {
+    "method": "tier_stratified_assembly_bootstrap",
+    "replicates": 10000,
+    "seed": 20260916,
+    "paired_resamples": true
+  },
+  "test_access": {
+    "development_test_rows": 0,
+    "final_command_separate": true,
+    "locked_registry_required": true,
+    "aggregate_output_only": true,
+    "prior_access_deviation": "three candidate records from test_assembly/00000"
+  }
+}

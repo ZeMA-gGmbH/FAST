@@ -1,0 +1,179 @@
+{
+  "schema_version": "fast.pointnet-spec.v1",
+  "phase": "pointnet-planner-v1",
+  "status": "frozen",
+  "inputs": {
+    "dataset_protocol": {
+      "path": "configs/evaluation_protocol.json",
+      "sha256": "cffe71197b7c41ce7d6de813ee2805cbfeec1b209b55ebb7cd6221c402e067ce"
+    },
+    "ranker_spec": {
+      "path": "configs/ranker_models.json",
+      "sha256": "8635d479af011786af5688e9bf4bdcedb53dc5c3460cba37bb4417adb63b2f7f"
+    },
+    "ranker_graph_audit_sha256": "5ada40534489984c344ec0bd9ada9939e194f33328a8b6ef11cb908544302682",
+    "ranker_training_audit_sha256": "ff02fdfdc15cb938a1e23d2c4a111eb3a55096f341315e80ec390871f3fd6ff1",
+    "ranker_validation_summary_sha256": "7f693ca32240af121e2c83e0c787d78193e78aba9bd988a5d0e74186cc09efb8",
+    "ranker_validation_audit_sha256": "ed7cd1155a6283f817a060737f040797fa66fd7437bf24eb99ca1e85b95a9f3f",
+    "ranker_bootstrap_plan_sha256": "a3f37a724ac16af0dc10080d501f4d73318f2dbab322f77c14afbeaa70a670b8",
+    "asap_pointnet_source_sha256": "250cdb1c5fb753aa47165838c72065294c96bb8cb09205daef2da57fc107d2c5"
+  },
+  "environment": {
+    "project": "environment/cu121/pyproject.toml",
+    "lock": "environment/cu121/uv.lock",
+    "lock_sha256": "20800514b9e49b7d32bfc09e4a1589a96ab0a0f029c666f45d9a86d8c96dfdaa",
+    "container": "local",
+    "python": "3.8",
+    "torch": "2.4.1",
+    "torch_geometric": "2.6.1",
+    "numpy": "1.21.4",
+    "trimesh": "3.10.8"
+  },
+  "artifacts": {
+    "ranker_graphs": "features/graph-records-v2",
+    "ranker_training": "runs/ranker-training-v2",
+    "pointnet_points": "features/pointnet-v1",
+    "pointnet_runs": "runs/pointnet-v1"
+  },
+  "points": {
+    "contract": "fast.points.v1",
+    "root_seed": 20260924,
+    "part_seed_encoding": "uint32_from_first_8_hex_sha256_of_canonical_json_array_[contract,root_seed,input_sha256,part_id]",
+    "count_per_part": 1000,
+    "dtype": "<f4",
+    "layout": "C",
+    "part_order": "lexical",
+    "sampler": "area_weighted_faces_reflected_barycentric_randomstate",
+    "coordinates": "final_assembled_mesh",
+    "normalization": "2*(point-assembly_vertex_aabb_midpoint)/assembly_vertex_aabb_longest_side",
+    "cache_key_encoding": "sha256_of_canonical_json_{contract:points_object,input_sha256:string}",
+    "pilot_training_assemblies": [
+      "00014",
+      "00011",
+      "00101"
+    ]
+  },
+  "pointnet": {
+    "channels": [
+      3,
+      64,
+      64,
+      64,
+      128,
+      32
+    ],
+    "batch_normalization": true,
+    "activation": "relu",
+    "pool": "global_max",
+    "fusion": "concatenate_with_normalized_41_scalar_features_before_graph_trunk",
+    "graph_transformer": {
+      "width": 84,
+      "layers": 1,
+      "heads": 4,
+      "ffn_width": 168,
+      "dropout": 0.1,
+      "distance_buckets": 71
+    },
+    "expected_parameters": 93902,
+    "control_parameters": 90142,
+    "parameter_target": 91000,
+    "parameter_tolerance_fraction": 0.2
+  },
+  "control": {
+    "architecture": "graph_transformer",
+    "mean_validation_success_at_1": 0.9220321931589538,
+    "checkpoints": {
+      "0": "5f44170fb749f4f71963599bf6a28b613f91d9b79c7df56dfbec394e27a0c1dc",
+      "1": "8ccfee223d9bd854034de14693ca43bde7c67bba0569b61ed3095f460d310e0e",
+      "2": "38cd41a9a98854fc3977aba64104e0189a0d4880bb49a38374f4bb13a396d422"
+    }
+  },
+  "training": {
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "optimizer": "adamw",
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "gradient_clip_norm": 1.0,
+    "epochs": 100,
+    "assemblies_per_batch": 8,
+    "mixed_precision": false,
+    "deterministic_algorithms": true
+  },
+  "advancement": {
+    "metric": "three_seed_mean_validation_offline_context_success_at_1",
+    "method": "paired_tier_stratified_assembly_bootstrap",
+    "replicates": 10000,
+    "seed": 20260916,
+    "confidence": 0.95,
+    "rule": "all_resource_audits_pass_and_difference_percentile_2_5_gt_0",
+    "fallback": "graph_transformer_control"
+  },
+  "cebulla_adapter": {
+    "features": 41,
+    "trunk": "four_layer_width_128_gcn",
+    "classifier": "linear_node_logit",
+    "expected_parameters": 72577,
+    "target": "true_if_any_valid_R_true_false_if_all_six_R_valid_and_false_else_null",
+    "loss": "assembly_balanced_binary_cross_entropy",
+    "selection": [
+      "validation_part_success_at_1",
+      "validation_average_precision"
+    ],
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "epochs": 100
+  },
+  "resources": {
+    "point_cache": {
+      "cpus": 1,
+      "memory_gib": 12,
+      "scratch_gib": 4
+    },
+    "gpu": {
+      "cpus": 4,
+      "memory_gib": 16,
+      "disk_gib": 20,
+      "model": "NVIDIA A100-PCIE-40GB",
+      "wall_hours": 12
+    },
+    "implementation_only_batching_or_io_corrections": 1,
+    "second_failure_fallback": "graph_transformer_control"
+  },
+  "planner": {
+    "directions": [
+      "+Z",
+      "-Z",
+      "+X",
+      "-X",
+      "+Y",
+      "-Y"
+    ],
+    "budgets": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "max_action_validations": "8*(part_count-1)",
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "redmax_validation_required": true,
+    "unvalidated_two_part_leaf": false,
+    "released_asap_checkpoint_sha256": "430a51253c25170e8f845ee21834a1e33714225fdf5f87b7cb687e4fe260d99a"
+  },
+  "test_access": {
+    "development_test_rows": 0,
+    "study_registry_required": true,
+    "aggregate_output_only": true
+  }
+}

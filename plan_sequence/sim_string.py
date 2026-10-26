@@ -112,7 +112,7 @@ def get_contact_sim_string(assembly_dir, parts=None, save_sdf=False, mat_dict=No
     return string
 
 
-def get_path_sim_string(assembly_dir, parts_fix, part_move, parts_removed=[], save_sdf=False, pose=None, mat_dict=None, col_th=0.01):
+def get_path_sim_string(assembly_dir, parts_fix, part_move, parts_removed=[], save_sdf=False, pose=None, mat_dict=None, col_th=0.01, arm_string=None):
     '''
     Simulation string for checking path assemblability
     '''
@@ -166,6 +166,8 @@ def get_path_sim_string(assembly_dir, parts_fix, part_move, parts_removed=[], sa
     </link>
 </robot>
 '''
+    if arm_string is not None:
+        string += arm_string
     string += f'''
 <contact>
 '''

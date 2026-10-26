@@ -1,0 +1,174 @@
+{
+  "schema_version": "fast.test-prediction-quality-spec.v1",
+  "status": "frozen",
+  "run_id": "test-prediction-quality-v1",
+  "frozen_before_test_access": true,
+  "objective": "descriptive post-hoc offline prediction quality of the frozen FAST checkpoints on the frozen ASAP test split; no success criterion, no directional hypothesis, every valid aggregate is reported",
+  "frozen_inputs": {
+    "dataset_manifest": {
+      "path": "datasets/fast-labels-v1/manifest.json",
+      "sha256": "b57465c0dd2568081f6c511f860435e23242c9b64c76df32eafb7bf6df2ce131"
+    },
+    "feature_build_manifest": {
+      "path": "features/scalar-features-v3/manifest.json",
+      "sha256": "d0c86ad0144c77e49ae221b041e11a56a080719fec2be43b497fc6a7a007827a"
+    },
+    "feature_config": {
+      "path": "configs/features.json",
+      "sha256": "6b34e9d7485ffb529786c28ddb4e8caeb17643fb439a085d27a4271083d787f6"
+    },
+    "ranker_model_spec": {
+      "path": "configs/ranker_models.json",
+      "sha256": "8635d479af011786af5688e9bf4bdcedb53dc5c3460cba37bb4417adb63b2f7f"
+    },
+    "ranker_compatibility_lock": {
+      "path": "environment/cu121/uv.lock",
+      "sha256": "20800514b9e49b7d32bfc09e4a1589a96ab0a0f029c666f45d9a86d8c96dfdaa"
+    },
+    "ablation_specification": {
+      "path": "configs/component_ablation.json",
+      "sha256": "11b2da8548801335ec2b6c5b3a9a17ecf74c929d8561954a22c75e610b1e93aa"
+    },
+    "ranker_graph_audit_normalization": {
+      "path": "features/graph-records-v2/audit.json",
+      "sha256": "5ada40534489984c344ec0bd9ada9939e194f33328a8b6ef11cb908544302682"
+    },
+    "validation_experiment_e_output": {
+      "path": "runs/component-ablation-v1/prediction-quality.json",
+      "sha256": "658fd76c7abfbb6a46aed191be2a86d8163e8e3297c5ff2cf244ebba7d0e4ebb"
+    },
+    "checkpoints": {
+      "0": {
+        "name": "epoch-034.pt",
+        "sha256": "5f44170fb749f4f71963599bf6a28b613f91d9b79c7df56dfbec394e27a0c1dc"
+      },
+      "1": {
+        "name": "epoch-099.pt",
+        "sha256": "8ccfee223d9bd854034de14693ca43bde7c67bba0569b61ed3095f460d310e0e"
+      },
+      "2": {
+        "name": "epoch-044.pt",
+        "sha256": "38cd41a9a98854fc3977aba64104e0189a0d4880bb49a38374f4bb13a396d422"
+      }
+    }
+  },
+  "population": {
+    "dataset_split": "test",
+    "source_split": "test_assembly",
+    "assembly_count": 237,
+    "tier_counts": {
+      "small": 20,
+      "medium": 128,
+      "large": 89
+    },
+    "feature_candidate_count": 17544,
+    "feature_action_count": 105264,
+    "selection": "every included test assembly of the frozen dataset index that has a scalar-feature test shard in the frozen feature-build manifest",
+    "complete_case_exclusion_applied": false,
+    "exact_completeness": "any missing, foreign, duplicated, invalid, or hash-mismatched required input stops the run; no exclusion, replacement, imputation, or tier redefinition"
+  },
+  "materialization": {
+    "transformation": "unchanged fast.graph_materialize._context_record over the audited scalar-feature test shards, candidate-label headers, raw meshes, and contact graphs",
+    "split_handling": "the frozen development validator is never relaxed; the separate test validator requires dataset_split=test and source_split=test_assembly and delegates all structural checks to the frozen validator on a split-relabelled shallow copy",
+    "output_root": "runs/test-prediction-quality-v1/test-graphs/",
+    "normalization": "frozen ranker training normalization from the development graph audit, byte-for-byte; no statistic is computed from test inputs",
+    "no_writes_to": [
+      "features/scalar-features-v3",
+      "features/graph-records-v2",
+      "labels",
+      "datasets",
+      "checkpoints",
+      "asap-data"
+    ],
+    "determinism": "every materialization process runs with PYTHONHASHSEED=0: the frozen scalar-feature geometric code iterates string sets, so float summation order and a 1e-16 residue in recomputed non-candidate features otherwise vary between processes"
+  },
+  "analysis": {
+    "implementation": "fast.ablation_offline.prediction_quality and threshold rules unchanged from commit 53954b7",
+    "runtime": "frozen ranker compatibility lock, Python 3.8.20, torch 2.4.1+cu121 on CPU, CUDA hidden, 4 BLAS threads",
+    "checkpoint_seeds": [
+      0,
+      1,
+      2
+    ],
+    "target_definitions": {
+      "R": "per action, P_R",
+      "T": "per candidate part, P_T",
+      "Y": "per action, P_R * P_T"
+    },
+    "threshold": "predicted positive iff uncalibrated probability >= 0.5",
+    "denominators": "TP/TN/FP/FN/unresolved as shares of all target labels; accuracy, precision, and recall over resolved labels; AP and AUROC over resolved labels, exactly as validation Experiment E",
+    "rows": [
+      "all",
+      "small",
+      "medium",
+      "large"
+    ],
+    "seed_aggregation": "per-seed aggregate counts in the machine-readable artifact; three-seed means in the completion table",
+    "undefined_metrics": "null with a mechanical reason; never imputed",
+    "not_authorized": [
+      "bootstrap",
+      "p-values",
+      "confidence intervals",
+      "calibration",
+      "timing row",
+      "method comparison",
+      "threshold selection",
+      "additional metrics",
+      "simulation",
+      "training",
+      "W&B upload"
+    ]
+  },
+  "pre_access_gate": [
+    "validation Experiment E reproduced exactly through the test evaluator code path",
+    "development loader refuses a test row",
+    "test evaluator refuses to run without the immutable specification and registry and refuses non-test rows",
+    "checkpoint, normalizer, schema, feature-width, and tier-count checks",
+    "registry rejects missing, duplicated, foreign, training, or validation rows",
+    "aggregate-only output schema rejects identifiers, probabilities, feature vectors, and individual targets",
+    "atomic publication and refusal to overwrite",
+    "dry run proving no source dataset, label, feature, or checkpoint path is writable",
+    "test-path materializer reproduces frozen ranker records on validation and training fixtures: structural fields, targets, and stored candidate values exactly; non-candidate node features recomputed from geometry within the frozen materializer's 1e-7 tolerance; identical frozen-checkpoint threshold decisions",
+    "fixture materialization is byte-reproducible in two fresh processes under PYTHONHASHSEED=0"
+  ],
+  "timing_gate": [
+    "no test path is opened before the D continue/stop decision is recorded",
+    "the test aggregate is never used to choose a D variant, seed, checkpoint, or claim"
+  ],
+  "access_controls": [
+    "test meshes, labels, graph shards, predictions, and targets are sealed payloads inside the run root",
+    "no individual test record or identifier is printed, logged, displayed, or placed in a report; progress reports counts only",
+    "the registry is sealed and never copied out of the run root",
+    "no claim that the test split was pristine; it was used earlier for the planner evaluation"
+  ],
+  "outputs": [
+    "specification.json",
+    "registry.json",
+    "input-audit.json",
+    "feature-materialization-audit.json",
+    "validation-reference-reproduction.json",
+    "test-prediction-quality.json",
+    "final-audit.json"
+  ],
+  "claim_boundary": "post-hoc offline prediction-quality analysis on the frozen ASAP test split, defined after the planner evaluation; 237-assembly population distinct from the 234-assembly planning-study planner population; medium/large rows describe policy-observed label contexts; no planner-success, simulation-reduction, causal, external-domain, or pristine-test claim; does not alter planning-study/3E, Experiment D, or any model choice",
+  "amendments": [
+    {
+      "date": "2026-10-09",
+      "test_access_before_amendment": false,
+      "change": "analysis.targets renamed to analysis.target_definitions",
+      "reason": "the aggregate-only export scanner forbids the payload key 'targets'; the descriptive specification entry is renamed without changing its content"
+    },
+    {
+      "date": "2026-10-09",
+      "test_access_before_amendment": false,
+      "change": "fixture-equivalence criterion",
+      "reason": "pre-access attempt 1 found one medium validation fixture whose recomputed non-candidate feature child_stability__unsupported_volume_fraction is exactly 0 in the frozen cluster records but carries a 1.1e-16 to 2.2e-16 floating residue on this CPU (5 cells; candidate values and all structural and target fields exact; identical model probabilities). Byte identity is replaced by the frozen materializer's own 1e-7 tolerance for recomputed non-candidate values, plus exact structural, target, candidate-value, and threshold-decision identity. Attempt 1 is preserved."
+    },
+    {
+      "date": "2026-10-09",
+      "test_access_before_amendment": false,
+      "change": "fixed hash seed for materialization",
+      "reason": "pre-access attempt 2 passed but the fixture residue varied between fresh processes (0, 3, 9 cells with one BLAS thread); with a fixed PYTHONHASHSEED it is identical run to run, proving set-order sensitivity in the frozen geometric code. Attempt 2 is preserved."
+    }
+  ]
+}

@@ -1,0 +1,411 @@
+{
+  "schema_version": "fast.dataset-evaluation-protocol.v1",
+  "protocol_id": "primary-v1",
+  "status": "frozen",
+  "frozen_on": "2026-09-14",
+  "research_questions": [
+    {
+      "id": "RQ1",
+      "question": "To what extent does feasibility-aware candidate ranking improve planning success under fixed simulation-validation budgets on unseen assemblies relative to ASAP variants under a common testbed?"
+    },
+    {
+      "id": "RQ2",
+      "question": "At matched planning success, how close can the required number of validated candidate actions approach the one-successful-action-per-transition lower bound on unseen assemblies?"
+    },
+    {
+      "id": "RQ3",
+      "question": "Which inference-time, pre-simulation features contribute predictive utility for removability, stability, joint feasibility, and downstream planning?"
+    }
+  ],
+  "claim_scope": {
+    "primary": "unseen assemblies drawn from the frozen ASAP/Fusion 360 Gallery assembly split",
+    "not_primary_claims": [
+      "unseen semantic product families, because family identities are unavailable",
+      "out-of-distribution geometry beyond the frozen source distribution",
+      "robot-arm or grasp feasibility",
+      "arbitrary or multi-segment removal motions",
+      "replacement of mandatory simulator validation",
+      "wall-clock superiority across different hardware or simulator implementations"
+    ],
+    "future_extensions": [
+      "few-shot adaptation to a separately collected target family",
+      "single-gripper robotic execution with explicit grasp and arm planning",
+      "continuous-direction and slide-then-pull motion actions",
+      "selective simulation bypass after an independently validated risk-coverage study",
+      "a faster collision or physics backend"
+    ]
+  },
+  "dataset": {
+    "phase": "fast-labels-v1",
+    "external_root": "datasets/fast-labels-v1",
+    "build_spec_sha256": "dc3133c72e41a75af220e34ddcd81c85b6adb9690906f7cea563d71e3c8c75a6",
+    "artifacts": {
+      "assemblies": {
+        "path": "assemblies.jsonl",
+        "row_count": 2132,
+        "sha256": "10f22110086d287684bdcfee40ed370bf174a55bebd829633385dd6e071ddd74"
+      },
+      "candidates": {
+        "path": "candidates.jsonl",
+        "row_count": 126123,
+        "sha256": "4a63134ca02abb169ec15d5f794202a0c34b726c4c227c71cfbbe96fa6e1175e"
+      },
+      "actions": {
+        "path": "actions.jsonl",
+        "row_count": 756738,
+        "sha256": "45bcc6bdb716bd9df7a5e59efa998b3bcdc4093f32861a9484e2237c0d6661e1"
+      },
+      "profile": {
+        "path": "profile.json",
+        "row_count": 1,
+        "sha256": "4f4a2fce445586de96ec235a3942cefc5481221e035047284a6ff4e0e1e6db57"
+      }
+    },
+    "source_hashes": {
+      "builder_sha256": "3da9e9219887ace02f371117ee99ea0b2c09201cbcf7b43e339efecf9ae3bb4a",
+      "config_sha256": "06ca4473aa7eaab8be28c3fbe0bc64b1bf375c9c282c0f9bda48f6a3fb1b0419",
+      "combined_audit_sha256": "360923032af825022e488fdff46dce24710639ef01ffa19698ef556cf64bb0c3",
+      "production_manifest_sha256": "8648d313cd87637466eb2ed243787feaf1d4ad4efd84929e9a04d5c34c07d255",
+      "production_inventory_sha256": "2b7c2eedeafbd099b4667751df72990a6025a147979aa02075f8040db67227a6"
+    },
+    "eligible_assembly_count": 2131,
+    "splits": {
+      "train": {
+        "total": 1703,
+        "small": 1036,
+        "medium": 576,
+        "large": 91
+      },
+      "validation": {
+        "total": 191,
+        "small": 115,
+        "medium": 65,
+        "large": 11
+      },
+      "test": {
+        "total": 237,
+        "small": 20,
+        "medium": 128,
+        "large": 89
+      },
+      "excluded": {
+        "total": 1,
+        "small": 0,
+        "medium": 1,
+        "large": 0
+      }
+    },
+    "tiers": {
+      "small": {
+        "part_count_min": 3,
+        "part_count_max": 6,
+        "label_exploration": "exhaustive reachable states"
+      },
+      "medium": {
+        "part_count_min": 7,
+        "part_count_max": 20,
+        "label_exploration": "adaptive fixed-budget mixed exploration"
+      },
+      "large": {
+        "part_count_min": 21,
+        "part_count_max": 70,
+        "label_exploration": "ASAP-compatible DFS with heur-out part ordering"
+      }
+    },
+    "split_policy": {
+      "validation_fraction": 0.1,
+      "validation_seed": 0,
+      "group_by": "input_sha256",
+      "no_input_sha256_overlap_between_train_validation_and_test": true,
+      "test_is_never_used_for_training_model_selection_calibration_or_threshold_selection": true
+    },
+    "exclusions": {
+      "production_failures": [
+        "training_assembly/00155",
+        "training_assembly/02033",
+        "training_assembly/02337",
+        "training_assembly/04183",
+        "training_assembly/04490",
+        "training_assembly/05288",
+        "training_assembly/05480",
+        "training_assembly/05810",
+        "training_assembly/05838",
+        "training_assembly/05847",
+        "training_assembly/07588",
+        "training_assembly/08073",
+        "test_assembly/04489",
+        "test_assembly/07802"
+      ],
+      "production_failure_reason": "repeatable simulator SIGSEGV in production and retry; absent from the indexed dataset and ineligible for training or evaluation",
+      "primary_test": [
+        {
+          "assembly": "test_assembly/07386",
+          "reason": "exact input duplicate of training_assembly/07385"
+        }
+      ],
+      "review_required_policy": "include policy-review rows because their indexed files passed integrity checks; report them by tier and do not reinterpret them as corrupt",
+      "orphan_checkpoint_policy": "exclude all unreferenced state checkpoints; only candidate files named by an authoritative assembly summary are indexed"
+    },
+    "observed_profile": {
+      "unique_states": 14996,
+      "state_pose_contexts": 37426,
+      "candidate_count": 126123,
+      "action_count": 756738,
+      "complete_label_search_sequences": 1370,
+      "complete_label_search_fraction": 0.6428906616611919,
+      "labels": {
+        "R": {
+          "true": 394756,
+          "false": 357839,
+          "null": 4143,
+          "positive_fraction_among_valid": 0.5245264717411091
+        },
+        "T": {
+          "true": 57093,
+          "false": 50878,
+          "null": 18152,
+          "positive_fraction_among_valid": 0.5287808763464263
+        },
+        "Y": {
+          "true": 210451,
+          "false": 537955,
+          "null": 8332,
+          "positive_fraction_among_valid": 0.28119897488796186
+        }
+      },
+      "interpretation": "complete_label_search_fraction describes label-generation coverage and is not a learned-planner result"
+    }
+  },
+  "prediction_problem": {
+    "context": "current remaining-part state and one simulator-proposed stable pose",
+    "action": "one candidate (part, direction) pair",
+    "directions": [
+      "+Z",
+      "-Z",
+      "+X",
+      "-X",
+      "+Y",
+      "-Y"
+    ],
+    "targets": {
+      "R": {
+        "name": "directional removability",
+        "unit": "(state, pose, part, direction)",
+        "definition": "whether the selected part separates successfully along the selected principal direction"
+      },
+      "T": {
+        "name": "post-removal stability",
+        "unit": "(state, pose, part)",
+        "definition": "whether the remaining assembly is stable under the frozen ASAP greedy stability policy with at most two grippers in total",
+        "direction_invariant_within_candidate": true
+      },
+      "Y": {
+        "name": "joint transition feasibility",
+        "unit": "(state, pose, part, direction)",
+        "definition": "the three-valued conjunction of R and T",
+        "truth_table": {
+          "true": "R is true and T is true",
+          "false": "R is false or T is false",
+          "null": "the conjunction cannot be resolved because a required simulator result is censored"
+        }
+      }
+    },
+    "missing_target_policy": {
+      "null_meaning": "censored, timed out, or not evaluated; never a negative label",
+      "training": "mask with the target-specific validity flag",
+      "metrics": "exclude from that target's denominator and report null counts and fractions by split and tier",
+      "stability_not_queried": "T is null when no direction has proven removable; this is not evidence of instability"
+    }
+  },
+  "leakage_boundary": {
+    "allowed_model_inputs": [
+      "part CAD geometry or point clouds derived only from CAD",
+      "final assembled part poses from config.json",
+      "contact graph and contact geometry derived only from CAD and assembled poses",
+      "part volume, mass, centre of mass, and relative geometric descriptors derived before simulation",
+      "current remaining-part mask and search depth",
+      "candidate part and one of the six principal directions",
+      "current assembly pose, gravity direction, support plane, and base identity"
+    ],
+    "forbidden_model_inputs": [
+      "R, T, Y, simulator status, timeout, displacement, collision, force, path, held-part, or convergence outputs",
+      "features computed from any candidate's removability or stability simulation",
+      "test labels or statistics used to choose features, architectures, hyperparameters, calibration, or thresholds"
+    ],
+    "simulator_outputs_may_be_used_as": [
+      "supervised labels",
+      "training-only auxiliary targets when explicitly ablated",
+      "mandatory online validation outcomes after ranking"
+    ]
+  },
+  "planning_protocol": {
+    "framework": "ASAP-compatible assembly-by-disassembly tree search",
+    "primary_condition": {
+      "max_grippers": 2,
+      "max_stable_poses": 3,
+      "stability": "ASAP greedy stability",
+      "support_and_gravity": "known",
+      "base_identity": "read from or deterministically derived with the same configuration policy for every method",
+      "plan_grasp": false,
+      "plan_arm": false,
+      "motion_space": "six world-frame principal translations",
+      "simulator": "the same ASAP RedMax/SDF implementation and parameters for every compared method",
+      "wall_timeout_seconds": 7200
+    },
+    "controlled_variables": [
+      "node-selection/search algorithm",
+      "stable-pose candidates and their order",
+      "simulator, SDF cache, physical parameters, and stopping criteria",
+      "candidate set and invalid-edge bookkeeping"
+    ],
+    "experimental_variable": "the ordering of candidate (part, direction) actions within the active state-pose context",
+    "part_only_baseline_adapter": "visit parts in the baseline's native order and directions for each part in the frozen canonical order [+Z, -Z, +X, -X, +Y, -Y]; do not inspect simulator outcomes to reorder untried actions",
+    "validation_rule": "rank first, then validate the selected action with the simulator; simulator validation remains authoritative",
+    "stability_rule": "evaluate stability only after at least one direction for the candidate part is proven removable",
+    "cache_rule": "a completed T result may be reused only within the identical (state, pose, part) candidate; cache use and saved rollouts must be logged",
+    "factorization_pruning_rule": "if T is false, prune every untried direction for the same (state, pose, part); if T is true, accept the first direction with R true; R false prunes only that direction",
+    "censored_online_result_rule": "a timed-out R or T result is unresolved, is not retried within the same run, and cannot validate a transition; continue with another ranked action and report the censoring event"
+  },
+  "cost_accounting": {
+    "primary_counter": {
+      "name": "action_validation",
+      "increment": "one for every selected (state, pose, part, direction) action submitted to mandatory validation",
+      "contents": "one directional removability check followed, only when R succeeds and T is not cached, by the candidate-level greedy stability check"
+    },
+    "secondary_counter": {
+      "name": "physics_rollout",
+      "increment": "one for each simulator trajectory, including each directional removal trajectory and each greedy-stability restart",
+      "purpose": "expose the physical work hidden by bundled evaluation counters"
+    },
+    "legacy_counter": {
+      "name": "asap_legacy_evaluation",
+      "increment": "one per ASAP part-pose feasibility attempt, which internally tests all six directions and conditionally invokes greedy stability",
+      "purpose": "reproduce the published ASAP budget convention; never compare it numerically with action_validation as if they were the same unit"
+    },
+    "ideal_successful_transition_count": "part_count - 1",
+    "ideal_bound_explanation": "one retained base plus one validated successful action for every other part",
+    "asap_unvalidated_leaf_shortcut": "disabled for primary action-validation accounting; preserved only in explicitly marked legacy reproduction"
+  },
+  "budgets": {
+    "primary_normalized_action_validation": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "normalization": "action_validation_budget / (part_count - 1)",
+    "per_assembly_absolute_budget": "multiplier * (part_count - 1)",
+    "nested_execution": "run each method once to 8*(part_count-1) and derive the lower-budget outcomes from the immutable validation trace",
+    "asap_legacy_reproduction": [
+      50,
+      400
+    ],
+    "timeout_outcome": "planning failure at every budget not reached before timeout; also report timeout separately"
+  },
+  "methods": {
+    "direct_planning_baselines": [
+      "ASAP DFS with random part ordering",
+      "ASAP DFS with heur-out part ordering",
+      "ASAP DFS with the released learning/GATv2 part ordering",
+      "Cebulla-style learned part-removability ordering adapted to the common testbed",
+      "heur-out part ordering with a train-only global direction-feasibility prior"
+    ],
+    "proposed": "factorized feasibility-aware (part, direction) ranking with a Graph Transformer",
+    "architecture_ablation": [
+      "part-independent MLP",
+      "message-passing GNN",
+      "GATv2",
+      "Graph Transformer"
+    ],
+    "architecture_fairness": "use identical input features, target masks, data splits, training budget, search, simulator, and action-validation budgets",
+    "feature_ablation_groups": [
+      "CAD geometry",
+      "contact topology and CAD-derived contact geometry",
+      "volume, mass, centre of mass, and relative-centre descriptors",
+      "pose, gravity, support, and base descriptors",
+      "candidate direction encoding"
+    ],
+    "contextual_not_direct_without_common_testbed_replication": [
+      "GRACE",
+      "Planning Assembly Sequence with Graph Transformer",
+      "S2A",
+      "Physics-Aware Combinatorial ASP using Data-Free Action Masking",
+      "SPAFormer",
+      "Fabrica"
+    ]
+  },
+  "outcomes": {
+    "primary": {
+      "metric": "planning success rate",
+      "population": "all 237 eligible unseen test assemblies",
+      "budgets": "each primary normalized action-validation budget",
+      "aggregation": "macro average over assemblies, with small/medium/large results reported separately"
+    },
+    "rq2": {
+      "matched_success": "for each baseline target success at each frozen budget, report the smallest proposed-method budget on the frozen grid that reaches or exceeds it; use the step function without interpolation and mark unreached targets as censored",
+      "budget_saving": "1 - proposed_budget / baseline_budget",
+      "paired_first_solution": "on assemblies solved by both methods, report paired action validations to first solution and the ratio to part_count-1; label this conditional analysis"
+    },
+    "predictive": {
+      "targets": [
+        "R",
+        "T",
+        "Y"
+      ],
+      "metrics": [
+        "average precision",
+        "AUROC",
+        "Brier score",
+        "negative log likelihood",
+        "expected calibration error with 15 equal-mass bins"
+      ],
+      "ranking_context": "(state, pose)",
+      "ranking_metrics": [
+        "Recall@1",
+        "Recall@3",
+        "mean reciprocal rank of the first feasible action"
+      ],
+      "all_negative_contexts": "exclude from positive-ranking denominators and report their count separately"
+    },
+    "secondary": [
+      "physics rollouts to first solution and at each fixed budget",
+      "ASAP legacy success at 50 and 400 legacy evaluations",
+      "wall time on identical hardware with simulator time, model inference time, and overhead separated",
+      "search nodes, backtracks, pose attempts, cache hits, and timeout counts",
+      "risk-coverage curves for any future selective-validation experiment"
+    ]
+  },
+  "statistics": {
+    "experimental_unit": "assembly",
+    "pairing": "compare methods on the same assemblies",
+    "confidence_intervals": "95% paired bootstrap intervals with 10000 assembly-level resamples, stratified by size tier",
+    "hypothesis_tests": "paired differences in planning success for the proposed method versus each direct ASAP baseline",
+    "familywise_alpha": 0.05,
+    "multiple_comparison_correction": "Holm correction across the four primary budgets for each predeclared baseline contrast",
+    "stochastic_seeds": [
+      0,
+      1,
+      2
+    ],
+    "deterministic_seed": 0,
+    "seed_aggregation": "aggregate stochastic-seed outcomes within assembly before assembly-level inference",
+    "effect_reporting": "report absolute success-rate differences, confidence intervals, normalized budget ratios, and raw denominators; do not report p-values alone"
+  },
+  "model_selection": {
+    "train": "parameter fitting only",
+    "validation": "architecture, feature set, loss, hyperparameters, checkpoint, calibration, and decision-rule selection",
+    "test": "one final locked evaluation after the implementation registry is frozen",
+    "test_reuse": "no iterative test-driven redesign; any later test access creates a new explicitly named protocol"
+  },
+  "reproducibility_registry_required_before_test": [
+    "repository commit",
+    "container image digest",
+    "dataset artifact hashes",
+    "model and optimizer configuration",
+    "selected checkpoint hashes",
+    "random seeds",
+    "simulator configuration",
+    "hardware description",
+    "per-assembly immutable action traces"
+  ]
+}

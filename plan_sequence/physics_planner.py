@@ -8,6 +8,7 @@ from time import time
 import numpy as np
 import redmax_py as redmax
 import networkx as nx
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 from assets.load import load_assembly, load_part_ids
@@ -101,13 +102,14 @@ class MultiPartPathPlanner:
             in_contact = in_contact or self.sim.body_in_contact(f'part{part_fix}', f'part{self.part_move}', min_sep)
         return not in_contact # if all movable parts are not in contact with fixed parts, then fully disassembled
     
-    def check_success(self, action, return_path=False, min_sep=None):
-
+    def check_success_detailed(self, action, min_sep=None, timeout=None):
+        """Run one removal rollout and report why it stopped."""
         self.sim.reset()
         self.apply_action(action)
 
         t_start = time()
-        step = 0
+        timeout = self.max_time if timeout is None else timeout
+        forward_steps = 0
         path = []
 
         while True:
@@ -119,15 +121,20 @@ class MultiPartPathPlanner:
 
             for _ in range(self.frame_skip):
                 self.sim.forward(1, verbose=False)
+                forward_steps += 1
                 new_state = self.get_state()
                 path.append(new_state.q)
 
                 t_plan = time() - t_start
-                if t_plan > self.max_time:
-                    if return_path:
-                        return False, path
-                    else:
-                        return False
+                if timeout is not None and t_plan > timeout:
+                    return {
+                        'success': False,
+                        'status': 'timeout',
+                        'reason': 'timeout',
+                        'path': path,
+                        'forward_steps': forward_steps,
+                        'runtime_s': t_plan,
+                    }
 
             if self.is_disassembled(min_sep):
                 break
@@ -139,25 +146,33 @@ class MultiPartPathPlanner:
             # qdotdot = np.dot(qdotdot, action) 
 
             if np.linalg.norm(qdotdot) < 0.01 * self.force_mag:
-                if return_path:
-                    return False, path
-                else:
-                    return False
+                return {
+                    'success': False,
+                    'status': 'blocked',
+                    'reason': 'stalled',
+                    'path': path,
+                    'forward_steps': forward_steps,
+                    'runtime_s': time() - t_start,
+                }
 
-            step += 1
+        return {
+            'success': True,
+            'status': 'success',
+            'reason': 'disassembled',
+            'path': path,
+            'forward_steps': forward_steps,
+            'runtime_s': time() - t_start,
+        }
 
+    def check_success(self, action, return_path=False, min_sep=None):
+        result = self.check_success_detailed(action, min_sep=min_sep)
         if return_path:
-            return True, path
+            return result['success'], result['path']
         else:
-            return True
+            return result['success']
 
     def plan_path(self, action, rotation=False):
         success, path = self.check_success(action, return_path=True)
-        # if success:
-        #     connect_path = self.connect_path_planner.plan(self.part_move, self.parts_fix, self.parts_removed, 
-        #         rotation=rotation, final_state=path[-1])
-        #     if connect_path is not None:
-        #         path += connect_path
         return success, path
 
     def render(self, path=None, reverse=False, record_path=None, make_video=False):
@@ -300,8 +315,8 @@ class MultiPartStabilityPlanner:
         self.parts_move = parts_move.copy()
         self.allow_gap = allow_gap
 
-    def check_success(self, max_step=MAX_STEP, timeout=None):
-
+    def check_success_detailed(self, max_step=MAX_STEP, timeout=None):
+        """Run one stability rollout and report why it stopped."""
         t_start = time()
 
         # initialize sim and stability checker
@@ -312,7 +327,14 @@ class MultiPartStabilityPlanner:
         # check initial connectivity
         parts_disconnected = checker.check_disconnected_parts()
         if len(parts_disconnected) > 0:
-            return False, parts_disconnected
+            return {
+                'success': False,
+                'status': 'blocked',
+                'reason': 'disconnected',
+                'parts_fall': parts_disconnected,
+                'forward_steps': 0,
+                'runtime_s': time() - t_start,
+            }
 
         # iterate until max step
         iterator = tqdm(range(max_step)) if DEBUG_SIM else range(max_step)
@@ -328,15 +350,40 @@ class MultiPartStabilityPlanner:
                 if len(parts_fall) > 0:
                     # checker.plot_his()
                     # self.render()
-                    return False, parts_fall
+                    return {
+                        'success': False,
+                        'status': 'blocked',
+                        'reason': 'fallen',
+                        'parts_fall': parts_fall,
+                        'forward_steps': i + 1,
+                        'runtime_s': time() - t_start,
+                    }
 
             if timeout is not None and time() - t_start > timeout:
-                return False, None
+                return {
+                    'success': False,
+                    'status': 'timeout',
+                    'reason': 'timeout',
+                    'parts_fall': None,
+                    'forward_steps': i + 1,
+                    'runtime_s': time() - t_start,
+                }
 
         # checker.plot_his()
         # self.render()
 
-        return True, None
+        return {
+            'success': True,
+            'status': 'success',
+            'reason': 'stable',
+            'parts_fall': None,
+            'forward_steps': max_step,
+            'runtime_s': time() - t_start,
+        }
+
+    def check_success(self, max_step=MAX_STEP, timeout=None):
+        result = self.check_success_detailed(max_step=max_step, timeout=timeout)
+        return result['success'], result['parts_fall']
 
     def render(self, record_path=None, make_video=False):
         SimRenderer.replay(self.sim, record=record_path is not None, record_path=record_path, make_video=make_video)

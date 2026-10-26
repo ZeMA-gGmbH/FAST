@@ -1,3 +1,11 @@
-from .gt_learning import TransformerBasedGenerator
+from .random import RandomGenerator
+from .heuristic import HeuristicsVolumeGenerator, HeuristicsOutsidenessGenerator
+from .learning import LearningBasedGenerator
 
-generators = {'fast': TransformerBasedGenerator}
+
+generators = {
+    'rand': RandomGenerator,
+    'heur-vol': HeuristicsVolumeGenerator,
+    'heur-out': HeuristicsOutsidenessGenerator,
+    'learn': LearningBasedGenerator,
+}
