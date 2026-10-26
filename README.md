@@ -113,7 +113,11 @@ deviations from the training split. All three checkpoints use it.
   assemblies processed by ASAP). Download `training_assembly.zip` and
   `test_assembly.zip` from the [ASAP repository](https://github.com/yunshengtian/ASAP)
   and unpack both into one folder, `$FAST_SOURCE_ROOT`. Use the original
-  meshes, not the subdivided ones.
+  meshes, not the subdivided ones. The meshes and contact graphs of exactly the
+  labelled assemblies are also on Hugging Face as
+  [`jaybhagiya/FAST-assembly-meshes`](https://huggingface.co/datasets/jaybhagiya/FAST-assembly-meshes);
+  its `place_meshes.py` unpacks them into `$FAST_SOURCE_ROOT` and checks each
+  `input_sha256`.
 - **Labels and splits**: the Hugging Face dataset
   [`jaybhagiya/FAST-assembly-labels`](https://huggingface.co/datasets/jaybhagiya/FAST-assembly-labels)
   (CC BY-NC 4.0 plus the Fusion 360 Gallery conditions). Restore the index
